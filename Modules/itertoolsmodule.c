@@ -678,7 +678,11 @@ _grouper_next(PyObject *op)
     }
 
     assert(gbo->currkey != NULL);
-    rcmp = PyObject_RichCompareBool(igo->tgtkey, gbo->currkey, Py_EQ);
+    PyObject *tgtkey = Py_NewRef(igo->tgtkey);
+    PyObject *currkey = Py_NewRef(gbo->currkey);
+    rcmp = PyObject_RichCompareBool(tgtkey, currkey, Py_EQ);
+    Py_DECREF(tgtkey);
+    Py_DECREF(currkey);
     if (rcmp <= 0)
         /* got any error or current group is end */
         return NULL;

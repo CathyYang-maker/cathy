@@ -754,6 +754,28 @@ class TestBasicOps(unittest.TestCase):
         next(g)
         next(g)  # must pass with address sanitizer
 
+    def test_grouper_next_reentrant_eq_does_not_crash(self):
+        # regression test for gh-145678
+        class Key:
+            def __init__(self, val, do_advance):
+                self.val = val
+                self.do_advance = do_advance
+
+            def __eq__(self, other):
+                if self.do_advance:
+                    self.do_advance = False
+                    next(g)
+                    return NotImplemented
+                return self.val == other.val
+
+            def __hash__(self):
+                return hash(self.val)
+
+        keys_iter = iter([Key(1, True), Key(1, False), Key(2, False)])
+        g = itertools.groupby([1, 1, 2], lambda _: next(keys_iter))
+        k, grp = next(g)
+        list(grp)  # must not crash with address sanitizer
+
     def test_filter(self):
         self.assertEqual(list(filter(isEven, range(6))), [0,2,4])
         self.assertEqual(list(filter(None, [0,1,0,2,0])), [1,2])

@@ -1,0 +1,2 @@
+Fix a use-after-free crash in :func:`itertools.groupby` when the
+parent iterator is mutated while the iterator of groups was advanced.
